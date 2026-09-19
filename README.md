@@ -1,71 +1,99 @@
-# Smart Route Finder 🚀
+# 🚀 Smart Route Finder
 
-A full-stack, state-of-the-art **Smart Route Finder** application built with **Java**, **Spring Boot**, **Spring Data JPA**, **H2 / MySQL**, and an **Interactive Web Visualizer UI**.
+> **A Full-Stack Graph-Based Route Optimization System using Java, Spring Boot, Dijkstra's Algorithm, and Interactive Visualization**
 
-The application models cities as **graph nodes** and routes as **weighted edges** (distance in kilometers, travel time in minutes, and fare cost in dollars). It uses **Dijkstra's Shortest Path Algorithm** with Java's `PriorityQueue` (Min-Heap) for $O((V + E) \log V)$ efficient path finding.
+Smart Route Finder is a full-stack route optimization application that models cities as **graph nodes** and routes as **weighted edges**. It uses **Dijkstra's Shortest Path Algorithm** with Java's `PriorityQueue` (Min-Heap) to calculate optimal routes based on **distance, travel time, or fare cost**.
 
----
-
-## 🌟 Key Features
-
-1. **Graph Core & Multi-Criteria Dijkstra Algorithm**:
-   - Nodes represented as `City` objects.
-   - Edges represented as `Route` objects with custom weights (Distance, Travel Time, Fare Cost).
-   - Java `PriorityQueue` Min-Heap node extraction.
-   - Real-time step-by-step trace generation capturing PriorityQueue contents, relaxed edges, and node settlement states for visualization.
-
-2. **Spring Boot REST API**:
-   - `/api/cities` – CRUD endpoints for city graph nodes.
-   - `/api/routes` – CRUD endpoints for weighted edge routes.
-   - `/api/routes/shortest-path` – Compute optimal route with customizable criteria (`DISTANCE`, `TIME`, `COST`).
-   - `/api/seed` – Pre-populates a rich sample network of major cities.
-
-3. **Interactive Web Visualizer**:
-   - Modern dark glassmorphic design system.
-   - SVG interactive graph canvas with dynamic node/edge rendering.
-   - Algorithm playback controls: Play, Pause, Step Forward, Speed slider (0.2x - 3.0x).
-   - PriorityQueue Min-Heap live state inspector.
-   - Distance table updates ($d(v)$ for all nodes).
-   - Animated glowing neon path highlight upon completion.
+The application also provides an interactive algorithm visualizer that allows users to observe how Dijkstra's algorithm explores nodes, relaxes edges, updates distances, and determines the optimal path.
 
 ---
 
-## 🛠️ Technology Stack
+## ✨ Key Features
 
-- **Backend**: Java 17+, Spring Boot 3.2, Spring Data JPA, H2 Database (or MySQL).
-- **Frontend**: HTML5, Vanilla CSS3 (Custom Glassmorphic Design System), JavaScript (ES6+), SVG Graphics.
-- **Build Tool**: Apache Maven (`pom.xml`).
+### 🧠 DSA & Algorithm Engine
 
----
-
-## 🚀 How to Run the Application
-
-### Option 1: Running with Maven
-Set your `JAVA_HOME` environment variable to JDK 17+ and execute:
-```bash
-# Windows PowerShell
-$env:JAVA_HOME = "C:\Users\HP\.jdks\graalvm-jdk-17.0.8"
-mvn spring-boot:run
-```
-
-### Option 2: Accessing the Application
-1. Open your browser and navigate to:
-   `http://localhost:8080`
-2. Select an **Origin City** (e.g., *New York*) and a **Destination City** (e.g., *San Francisco*).
-3. Choose your **Optimization Metric** (*Distance*, *Time*, or *Cost*).
-4. Click **Find Optimal Route** and watch Dijkstra's algorithm run step-by-step!
+- Implemented **Dijkstra's Shortest Path Algorithm** from scratch using Java.
+- Represents cities as graph **vertices** and routes as weighted **edges**.
+- Uses Java `PriorityQueue` as a **Min-Heap**.
+- Supports multiple optimization criteria:
+  - 📍 Distance
+  - ⏱️ Travel Time
+  - 💰 Fare Cost
+- Performs efficient edge relaxation.
+- Tracks shortest distances for all nodes.
+- Generates step-by-step algorithm traces.
+- Visualizes:
+  - PriorityQueue state
+  - Node exploration
+  - Edge relaxation
+  - Distance updates
+  - Node settlement
+  - Final shortest path
 
 ---
 
-## 📊 REST API Reference
+## 🌐 REST API
+
+Built RESTful APIs using **Spring Boot** and **Spring Data JPA**.
 
 | Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/cities` | Fetch list of all city nodes |
-| `POST` | `/api/cities` | Create a new city node |
-| `DELETE` | `/api/cities/{id}` | Delete a city node and its connecting routes |
-| `GET` | `/api/routes` | Fetch all weighted routes |
-| `POST` | `/api/routes` | Create a new weighted route edge |
-| `DELETE` | `/api/routes/{id}` | Delete a route edge |
-| `GET` | `/api/routes/shortest-path` | Query shortest path (`sourceId`, `destinationId`, `criterion`) |
-| `POST` | `/api/seed` | Reset and seed sample graph network |
+|--------|----------|-------------|
+| `GET` | `/api/cities` | Retrieve all cities |
+| `POST` | `/api/cities` | Create a new city |
+| `DELETE` | `/api/cities/{id}` | Delete a city |
+| `GET` | `/api/routes` | Retrieve all routes |
+| `POST` | `/api/routes` | Create a new route |
+| `DELETE` | `/api/routes/{id}` | Delete a route |
+| `GET` | `/api/routes/shortest-path` | Calculate optimal route |
+| `POST` | `/api/seed` | Seed sample graph data |
+
+---
+
+## 🎨 Interactive Web Visualizer
+
+The project includes a modern interactive frontend with:
+
+- 🌙 Dark glassmorphism UI
+- 🗺️ Interactive SVG graph
+- 🔵 Dynamic nodes and edges
+- ▶️ Play / Pause controls
+- ⏭️ Step-by-step algorithm execution
+- ⚡ Adjustable playback speed
+- 📊 Live distance table
+- 🧮 PriorityQueue / Min-Heap inspector
+- ✨ Animated shortest-path highlighting
+- 📈 Real-time algorithm execution trace
+
+---
+
+## 🏗️ System Architecture
+
+```text
+                    ┌─────────────────────────┐
+                    │      Web Browser        │
+                    │ HTML + CSS + JavaScript │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Spring Boot REST API │
+                    │       Controllers       │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │      Service Layer      │
+                    │ Business Logic + Dijkstra│
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+          ┌──────────────────┐      ┌──────────────────┐
+          │ Graph Algorithm  │      │  JPA Repository  │
+          │ Dijkstra + Heap  │      │ Data Persistence │
+          └──────────────────┘      └─────────┬────────┘
+                                              │
+                                              ▼
+                                   ┌──────────────────┐
+                                   │     H2 / MySQL   │
+                                   └──────────────────┘
