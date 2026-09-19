@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Route Finder | Dijkstra Shortest Path Visualizer</title>
+    <meta name="description" content="Interactive Smart Route Finder web visualizer using Dijkstra's shortest path algorithm, Spring Boot REST API, and graph data structures.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Background Animated Particles / Glows -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon"><i class="fa-solid fa-route"></i></div>
+                <div>
+                    <h1>Smart Route Finder</h1>
+                    <p class="subtitle">Graph Data Structures & Dijkstra's Algorithm Engine</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="status-badge" id="apiStatusBadge">
+                    <span class="status-dot online"></span>
+                    <span id="apiStatusText">Spring Boot REST API Active</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="seedDataBtn">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Reset / Seed Network
+                </button>
+                <button class="btn btn-primary btn-sm" id="addCityModalBtn">
+                    <i class="fa-solid fa-plus"></i> Add City Node
+                </button>
+                <button class="btn btn-primary btn-sm" id="addRouteModalBtn">
+                    <i class="fa-solid fa-link"></i> Add Route Edge
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-grid">
+            <!-- Left Controls & Pathfinder Panel -->
+            <aside class="control-panel">
+                <div class="card shadow-glass">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-location-crosshairs"></i> Path Query</h2>
+                    </div>
+                    <form id="pathfinderForm">
+                        <div class="form-group">
+                            <label for="sourceCitySelect"><i class="fa-solid fa-circle-dot text-success"></i> Origin City</label>
+                            <select id="sourceCitySelect" class="form-control" required>
+                                <option value="">Select origin city...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destCitySelect"><i class="fa-solid fa-location-dot text-danger"></i> Destination City</label>
+                            <select id="destCitySelect" class="form-control" required>
+                                <option value="">Select destination city...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-sliders"></i> Optimization Metric</label>
+                            <div class="metric-selector">
+                                <label class="radio-card active" data-value="DISTANCE">
+                                    <input type="radio" name="criterion" value="DISTANCE" checked hidden>
+                                    <i class="fa-solid fa-road"></i>
+                                    <span>Distance (km)</span>
+                                </label>
+                                <label class="radio-card" data-value="TIME">
+                                    <input type="radio" name="criterion" value="TIME" hidden>
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span>Time (min)</span>
+                                </label>
+                                <label class="radio-card" data-value="COST">
+                                    <input type="radio" name="criterion" value="COST" hidden>
+                                    <i class="fa-solid fa-dollar-sign"></i>
+                                    <span>Cost ($)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-accent btn-block" id="calculatePathBtn">
+                            <i class="fa-solid fa-bolt"></i> Find Optimal Route
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Visualizer Controls -->
+                <div class="card shadow-glass visualizer-controls-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-play"></i> Algorithm Visualizer</h2>
+                    </div>
+                    <div class="playback-controls">
+                        <button class="btn-icon" id="playBtn" title="Play / Pause Animation">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button class="btn-icon" id="stepBtn" title="Step Forward">
+                            <i class="fa-solid fa-step-forward"></i>
+                        </button>
+                        <button class="btn-icon" id="resetAnimBtn" title="Reset Animation">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+
+                    <div class="speed-control">
+                        <label for="speedRange">Speed: <span id="speedVal">1.0x</span></label>
+                        <input type="range" id="speedRange" min="0.2" max="3.0" step="0.2" value="1.0">
+                    </div>
+
+                    <div class="step-progress">
+                        <span id="stepCounterText">Step: 0 / 0</span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Summary Card -->
+                <div class="card shadow-glass result-metrics-card" id="resultsCard" style="display: none;">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-chart-pie"></i> Optimal Route Metrics</h2>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">Total Distance</span>
+                            <span class="metric-val" id="resDistance">0 km</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Travel Time</span>
+                            <span class="metric-val" id="resTime">0 min</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Total Fare</span>
+                            <span class="metric-val" id="resCost">$0.00</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Execution Time</span>
+                            <span class="metric-val" id="resExecTime">0 ms</span>
+                        </div>
+                    </div>
+
+                    <div class="path-sequence">
+                        <h4>Route Sequence:</h4>
+                        <div class="sequence-chips" id="pathSequenceChips"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center Canvas View -->
+            <section class="visualizer-view card shadow-glass">
+                <div class="canvas-header">
+                    <div class="legend-bar">
+                        <span class="legend-item"><span class="legend-dot dot-unvisited"></span> Unvisited</span>
+                        <span class="legend-item"><span class="legend-dot dot-current"></span> Current (Poll)</span>
+                        <span class="legend-item"><span class="legend-dot dot-visited"></span> Visited</span>
+                        <span class="legend-item"><span class="legend-dot dot-path"></span> Shortest Path</span>
+                    </div>
+
+                    <div class="view-actions">
+                        <button class="btn-icon btn-sm" id="centerCanvasBtn" title="Recenter Graph"><i class="fa-solid fa-compress"></i></button>
+                    </div>
+                </div>
+
+                <!-- SVG Graph Viewport -->
+                <div class="canvas-viewport" id="canvasViewport">
+                    <svg id="graphSvg" width="100%" height="100%">
+                        <defs>
+                            <marker id="arrow" viewBox="0 0 10 10" refX="15" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                            </marker>
+                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="6" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+                        <g id="edgesGroup"></g>
+                        <g id="nodesGroup"></g>
+                    </svg>
+                </div>
+
+                <!-- Step Description Overlay Toast -->
+                <div class="step-overlay-toast" id="stepOverlayToast">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span id="stepDescText">Select origin & destination city, then click 'Find Optimal Route'.</span>
+                </div>
+            </section>
+
+            <!-- Right Inspector & Data Structures Panel -->
+            <aside class="inspector-panel">
+                <!-- Priority Queue Inspector -->
+                <div class="card shadow-glass">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-layer-group"></i> PriorityQueue Min-Heap</h2>
+                        <span class="badge badge-primary" id="pqSizeBadge">0 items</span>
+                    </div>
+                    <div class="pq-visualizer" id="pqVisualizerList">
+                        <div class="empty-state">Priority Queue is empty</div>
+                    </div>
+                </div>
+
+                <!-- Current Distance Map Table -->
+                <div class="card shadow-glass flex-1">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-table"></i> Distance Table d(v)</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="distanceTable">
+                            <thead>
+                                <tr>
+                                    <th>City</th>
+                                    <th>Current d(v)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="distanceTableBody">
+                                <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Add City Modal -->
+    <div class="modal" id="addCityModal">
+        <div class="modal-content shadow-glass">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-city"></i> Add New City Node</h3>
+                <button class="close-btn" id="closeCityModalBtn">&times;</button>
+            </div>
+            <form id="addCityForm">
+                <div class="form-group">
+                    <label for="newCityName">City Name</label>
+                    <input type="text" id="newCityName" class="form-control" placeholder="e.g., San Jose" required>
+                </div>
+                <div class="form-group">
+                    <label for="newCityCode">City Code / Abbr</label>
+                    <input type="text" id="newCityCode" class="form-control" placeholder="e.g., SJC" maxlength="5" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newCityX">X Position (%)</label>
+                        <input type="number" id="newCityX" class="form-control" min="5" max="95" value="50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newCityY">Y Position (%)</label>
+                        <input type="number" id="newCityY" class="form-control" min="5" max="95" value="50" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelCityModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save City</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Route Modal -->
+    <div class="modal" id="addRouteModal">
+        <div class="modal-content shadow-glass">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-road"></i> Add Weighted Edge Route</h3>
+                <button class="close-btn" id="closeRouteModalBtn">&times;</button>
+            </div>
+            <form id="addRouteForm">
+                <div class="form-group">
+                    <label for="routeSourceSelect">Source City</label>
+                    <select id="routeSourceSelect" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="routeDestSelect">Destination City</label>
+                    <select id="routeDestSelect" class="form-control" required></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="routeDist">Distance (km)</label>
+                        <input type="number" id="routeDist" class="form-control" min="1" step="0.1" value="500" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="routeTime">Time (min)</label>
+                        <input type="number" id="routeTime" class="form-control" min="1" value="360" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="routeCost">Cost ($)</label>
+                        <input type="number" id="routeCost" class="form-control" min="1" step="0.01" value="120.00" required>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="routeBidi" checked> Two-way Route
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelRouteModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="js/app.js"></script>
+</body>
+</html>
